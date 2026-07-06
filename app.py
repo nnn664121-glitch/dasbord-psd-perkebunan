@@ -1,5 +1,5 @@
 # ==============================================================================
-# UAS PENGENALAN SAINS DATA - ENTERPRISE DASHBOARD 3D (STABLE VERSION)
+# UAS PENGENALAN SAINS DATA - ENTERPRISE DASHBOARD 3D (AURORA BG EDITION)
 # ==============================================================================
 # Tools: Streamlit, Pandas, Numpy, Matplotlib, Seaborn, Plotly, Scipy, Statsmodels
 # ==============================================================================
@@ -70,134 +70,162 @@ PAPUA PEGUNUNGAN;0.0;0.02;0.0;3.27;0.0;0.0;0.0
 """
 
 # ==============================================================================
-# CUSTOM CSS & THEME MANAGER (FIXED: NO F-STRING INTERPOLATION)
+# ANIMATED BACKGROUND & THEME MANAGER
 # ==============================================================================
 def load_css(theme: str = "dark") -> None:
-    """Memuat CSS berdasarkan tema yang dipilih tanpa f-string untuk mencegah error."""
+    """Memuat CSS dengan animasi latar belakang Aurora."""
     
     if theme == "dark":
-        css = """
-        <style>
-            @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;600&display=swap');
-            :root {
-                --bg-color: #0f172a;
-                --card-bg: rgba(30, 41, 59, 0.7);
-                --text-main: #f8fafc;
-                --text-muted: #94a3b8;
-                --primary: #3b82f6;
-                --secondary: #8b5cf6;
-            }
-            .stApp {
-                background: radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 40%),
-                            radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 40%),
-                            #0f172a;
-                color: var(--text-main);
-                font-family: 'Outfit', sans-serif;
-                transition: background 0.5s ease;
-            }
-            h1, h2, h3, h4 {
-                font-family: 'Outfit', sans-serif !important;
-                font-weight: 800 !important;
-                background: linear-gradient(90deg, var(--primary), var(--secondary));
-                -webkit-background-clip: text !important;
-                -webkit-text-fill-color: transparent !important;
-            }
-            section[data-testid="stSidebar"] {
-                background: rgba(15, 23, 42, 0.9) !important;
-                border-right: 1px solid rgba(148, 163, 184, 0.2) !important;
-                backdrop-filter: blur(10px);
-            }
-            div[data-testid="stMetric"] {
-                background: var(--card-bg) !important;
-                border: 1px solid rgba(148, 163, 184, 0.2) !important;
-                padding: 20px !important;
-                border-radius: 15px !important;
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
-                transition: transform 0.3s ease !important;
-            }
-            div[data-testid="stMetric"]:hover {
-                transform: translateY(-5px) !important;
-                border-color: var(--primary) !important;
-            }
-            .stDataFrame, .stTable {
-                background: var(--card-bg) !important;
-                border-radius: 12px !important;
-                border: 1px solid rgba(148, 163, 184, 0.2) !important;
-            }
-            .stButton>button, .stDownloadButton>button {
-                background: linear-gradient(90deg, var(--primary), var(--secondary)) !important;
-                color: white !important;
-                border: none !important;
-                font-weight: 600 !important;
-                transition: all 0.3s ease !important;
-            }
-            .stSelectbox>div>div, .stMultiselect>div>div, .stSlider>div>div {
-                background: var(--card-bg) !important;
-                border-color: rgba(148, 163, 184, 0.3) !important;
-                color: var(--text-main) !important;
-            }
-        </style>
-        """
+        # Latar belakang gelap dengan animasi blob neon
+        bg_base_color = "#0f172a"
+        card_bg = "rgba(30, 41, 59, 0.6)"
+        text_main = "#f8fafc"
+        text_muted = "#94a3b8"
+        primary = "#3b82f6"
+        secondary = "#8b5cf6"
+        blob1 = "rgba(59, 130, 246, 0.4)"
+        blob2 = "rgba(139, 92, 246, 0.4)"
+        blob3 = "rgba(236, 72, 153, 0.3)"
     else:
-        css = """
-        <style>
-            @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;600&display=swap');
-            :root {
-                --bg-color: #f8fafc;
-                --card-bg: #ffffff;
-                --text-main: #0f172a;
-                --text-muted: #64748b;
-                --primary: #2563eb;
-                --secondary: #7c3aed;
-            }
-            .stApp {
-                background: #f8fafc;
-                color: var(--text-main);
-                font-family: 'Outfit', sans-serif;
-                transition: background 0.5s ease;
-            }
-            h1, h2, h3, h4 {
-                font-family: 'Outfit', sans-serif !important;
-                font-weight: 800 !important;
-                background: linear-gradient(90deg, var(--primary), var(--secondary));
-                -webkit-background-clip: text !important;
-                -webkit-text-fill-color: transparent !important;
-            }
-            section[data-testid="stSidebar"] {
-                background: #ffffff !important;
-                border-right: 1px solid rgba(148, 163, 184, 0.2) !important;
-            }
-            div[data-testid="stMetric"] {
-                background: #ffffff !important;
-                border: 1px solid rgba(148, 163, 184, 0.2) !important;
-                padding: 20px !important;
-                border-radius: 15px !important;
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
-                transition: transform 0.3s ease !important;
-            }
-            div[data-testid="stMetric"]:hover {
-                transform: translateY(-5px) !important;
-                border-color: var(--primary) !important;
-            }
-            .stDataFrame, .stTable {
-                background: #ffffff !important;
-                border-radius: 12px !important;
-                border: 1px solid rgba(148, 163, 184, 0.2) !important;
-            }
-            .stButton>button, .stDownloadButton>button {
-                background: linear-gradient(90deg, var(--primary), var(--secondary)) !important;
-                color: white !important;
-                border: none !important;
-                font-weight: 600 !important;
-                transition: all 0.3s ease !important;
-            }
-            .stSelectbox>div>div, .stMultiselect>div>div, .stSlider>div>div {
-                background: #ffffff !important;
-                border-color: rgba(148, 163, 184, 0.3) !important;
-                color: var(--text-main) !important;
-            }
-        </style>
-        """
+        # Latar belakang terang dengan animasi blob pastel
+        bg_base_color = "#f8fafc"
+        card_bg = "rgba(255, 255, 255, 0.8)"
+        text_main = "#0f172a"
+        text_muted = "#64748b"
+        primary = "#2563eb"
+        secondary = "#7c3aed"
+        blob1 = "rgba(59, 130, 246, 0.15)"
+        blob2 = "rgba(139, 92, 246, 0.15)"
+        blob3 = "rgba(236, 72, 153, 0.1)"
+
+    # Membuat HTML untuk animasi blob
+    bg_html = f"""
+    <div class="bg-animation" style="background-color: {bg_base_color};">
+        <div class="blob" style="background: {blob1}; top: -10%; left: -10%; width: 40vw; height: 40vw;"></div>
+        <div class="blob" style="background: {blob2}; top: 30%; right: -15%; width: 50vw; height: 50vw; animation-delay: -5s;"></div>
+        <div class="blob" style="background: {blob3}; bottom: -20%; left: 20%; width: 45vw; height: 45vw; animation-delay: -10s;"></div>
+    </div>
+    """
+
+    css = f"""
+    <style>
+        {bg_html}
+        
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;600&display=swap');
+        
+        :root {{
+            --bg-color: {bg_base_color};
+            --card-bg: {card_bg};
+            --text-main: {text_main};
+            --text-muted: {text_muted};
+            --primary: {primary};
+            --secondary: {secondary};
+        }}
+        
+        /* Animasi Latar Belakang */
+        .bg-animation {{
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            overflow: hidden;
+        }}
+        
+        .blob {{
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            animation: floatBlob 20s infinite ease-in-out;
+        }}
+        
+        @keyframes floatBlob {{
+            0%, 100% {{ transform: translate(0, 0) scale(1); }}
+            33% {{ transform: translate(50px, -50px) scale(1.1); }}
+            66% {{ transform: translate(-30px, 30px) scale(0.9); }}
+        }}
+        
+        .stApp {{
+            background: transparent !important;
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+        }}
+        
+        h1, h2, h3, h4 {{
+            font-family: 'Outfit', sans-serif !important;
+            font-weight: 800 !important;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }}
+        
+        section[data-testid="stSidebar"] {{
+            background: {card_bg} !important;
+            border-right: 1px solid rgba(148, 163, 184, 0.2) !important;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }}
+        
+        div[data-testid="stMetric"] {{
+            background: var(--card-bg) !important;
+            border: 1px solid rgba(148, 163, 184, 0.2) !important;
+            padding: 20px !important;
+            border-radius: 15px !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+        }}
+        
+        div[data-testid="stMetric"]:hover {{
+            transform: translateY(-5px) scale(1.02) !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2) !important;
+            border-color: var(--primary) !important;
+        }}
+        
+        .stDataFrame, .stTable {{
+            background: var(--card-bg) !important;
+            border-radius: 12px !important;
+            border: 1px solid rgba(148, 163, 184, 0.2) !important;
+            backdrop-filter: blur(10px);
+        }}
+        
+        .stButton>button, .stDownloadButton>button {{
+            background: linear-gradient(90deg, var(--primary), var(--secondary)) !important;
+            color: white !important;
+            border: none !important;
+            font-weight: 600 !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+        }}
+        
+        .stButton>button:hover, .stDownloadButton>button:hover {{
+            transform: translateY(-2px) !important;
+            box-shadow: 0 7px 10px -3px rgba(0, 0, 0, 0.3) !important;
+        }}
+        
+        .stSelectbox>div>div, .stMultiselect>div>div, .stSlider>div>div {{
+            background: var(--card-bg) !important;
+            border-color: rgba(148, 163, 184, 0.3) !important;
+            color: var(--text-main) !important;
+            border-radius: 8px !important;
+        }}
+        
+        /* Scrollbar Custom */
+        ::-webkit-scrollbar {{
+            width: 8px;
+        }}
+        ::-webkit-scrollbar-track {{
+            background: transparent;
+        }}
+        ::-webkit-scrollbar-thumb {{
+            background: var(--primary);
+            border-radius: 10px;
+        }}
+        
+    </style>
+    """
     st.markdown(css, unsafe_allow_html=True)
 
 # Inisialisasi Theme State
@@ -471,7 +499,6 @@ elif menu == "📉 Dimensionality Reduction (PCA)":
     cov_matrix = np.cov(X_std.T)
     eigenvalues, eigenvectors = np.linalg.eig(cov_matrix)
     
-    # FIX: Cast to real to avoid complex numbers due to float precision
     eigenvalues = np.real(eigenvalues)
     eigenvectors = np.real(eigenvectors)
     
