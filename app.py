@@ -1,5 +1,5 @@
 # ==============================================================================
-# UAS PENGENALAN SAINS DATA - ENTERPRISE DASHBOARD 3D (AURORA BG EDITION)
+# UAS PENGENALAN SAINS DATA - ENTERPRISE DASHBOARD 3D (3D MAP EDITION)
 # ==============================================================================
 # Tools: Streamlit, Pandas, Numpy, Matplotlib, Seaborn, Plotly, Scipy, Statsmodels
 # ==============================================================================
@@ -70,13 +70,33 @@ PAPUA PEGUNUNGAN;0.0;0.02;0.0;3.27;0.0;0.0;0.0
 """
 
 # ==============================================================================
+# KOORDINAT PROVINSI INDONESIA UNTUK PEMETAAN 3D
+# ==============================================================================
+PROV_COORDS = {
+    "ACEH": (4.7, 96.7), "SUMATERA UTARA": (2.5, 99.0), "SUMATERA BARAT": (-0.5, 100.7),
+    "RIAU": (0.5, 101.8), "JAMBI": (-1.7, 103.0), "SUMATERA SELATAN": (-3.0, 104.5),
+    "BENGKULU": (-3.5, 102.3), "LAMPUNG": (-4.5, 105.3), "KEP. BANGKA BELITUNG": (-2.5, 106.8),
+    "KEP. RIAU": (3.5, 108.0), "DKI JAKARTA": (-6.2, 106.8), "JAWA BARAT": (-7.0, 107.5),
+    "JAWA TENGAH": (-7.3, 110.0), "DI YOGYAKARTA": (-7.8, 110.4), "JAWA TIMUR": (-7.7, 112.5),
+    "BANTEN": (-6.4, 106.0), "BALI": (-8.4, 115.2), "NUSA TENGGARA BARAT": (-8.7, 117.4),
+    "NUSA TENGGARA TIMUR": (-9.5, 121.0), "KALIMANTAN BARAT": (-0.3, 111.5),
+    "KALIMANTAN TENGAH": (-1.7, 113.4), "KALIMANTAN SELATAN": (-3.1, 115.3),
+    "KALIMANTAN TIMUR": (0.5, 116.4), "KALIMANTAN UTARA": (3.0, 116.0),
+    "SULAWESI UTARA": (1.3, 124.8), "SULAWESI TENGAH": (-1.4, 121.4),
+    "SULAWESI SELATAN": (-3.7, 120.0), "SULAWESI TENGGARA": (-4.0, 122.5),
+    "GORONTALO": (0.7, 122.4), "SULAWESI BARAT": (-2.7, 119.0), "MALUKU": (-3.2, 129.0),
+    "MALUKU UTARA": (0.7, 127.8), "PAPUA BARAT": (-1.5, 133.0), "PAPUA BARAT DAYA": (-1.5, 131.0),
+    "PAPUA": (-4.0, 138.0), "PAPUA SELATAN": (-7.5, 140.0), "PAPUA TENGAH": (-4.5, 137.0),
+    "PAPUA PEGUNUNGAN": (-4.0, 139.0)
+}
+
+# ==============================================================================
 # ANIMATED BACKGROUND & THEME MANAGER
 # ==============================================================================
 def load_css(theme: str = "dark") -> None:
     """Memuat CSS dengan animasi latar belakang Aurora."""
     
     if theme == "dark":
-        # Latar belakang gelap dengan animasi blob neon
         bg_base_color = "#0f172a"
         card_bg = "rgba(30, 41, 59, 0.6)"
         text_main = "#f8fafc"
@@ -87,7 +107,6 @@ def load_css(theme: str = "dark") -> None:
         blob2 = "rgba(139, 92, 246, 0.4)"
         blob3 = "rgba(236, 72, 153, 0.3)"
     else:
-        # Latar belakang terang dengan animasi blob pastel
         bg_base_color = "#f8fafc"
         card_bg = "rgba(255, 255, 255, 0.8)"
         text_main = "#0f172a"
@@ -98,7 +117,6 @@ def load_css(theme: str = "dark") -> None:
         blob2 = "rgba(139, 92, 246, 0.15)"
         blob3 = "rgba(236, 72, 153, 0.1)"
 
-    # Membuat HTML untuk animasi blob
     bg_html = f"""
     <div class="bg-animation" style="background-color: {bg_base_color};">
         <div class="blob" style="background: {blob1}; top: -10%; left: -10%; width: 40vw; height: 40vw;"></div>
@@ -122,7 +140,6 @@ def load_css(theme: str = "dark") -> None:
             --secondary: {secondary};
         }}
         
-        /* Animasi Latar Belakang */
         .bg-animation {{
             position: fixed;
             top: 0;
@@ -212,23 +229,14 @@ def load_css(theme: str = "dark") -> None:
             border-radius: 8px !important;
         }}
         
-        /* Scrollbar Custom */
-        ::-webkit-scrollbar {{
-            width: 8px;
-        }}
-        ::-webkit-scrollbar-track {{
-            background: transparent;
-        }}
-        ::-webkit-scrollbar-thumb {{
-            background: var(--primary);
-            border-radius: 10px;
-        }}
+        ::-webkit-scrollbar {{ width: 8px; }}
+        ::-webkit-scrollbar-track {{ background: transparent; }}
+        ::-webkit-scrollbar-thumb {{ background: var(--primary); border-radius: 10px; }}
         
     </style>
     """
     st.markdown(css, unsafe_allow_html=True)
 
-# Inisialisasi Theme State
 if 'theme' not in st.session_state:
     st.session_state.theme = "dark"
 
@@ -238,11 +246,9 @@ load_css(st.session_state.theme)
 # DATA PROCESSOR CLASS
 # ==============================================================================
 class AgriDataProcessor:
-    """Kelas untuk memproses data pertanian."""
     def __init__(self, raw_data: str):
         self.raw_data = raw_data
         self.df = None
-        self.df_region = None
         self.commodities = ['Kelapa_Sawit', 'Kelapa', 'Karet', 'Kopi', 'Kakao', 'Teh', 'Tebu']
         
     def process(self) -> pd.DataFrame:
@@ -254,7 +260,6 @@ class AgriDataProcessor:
         df = df[~df.index.duplicated(keep='first')]
         self.df = df
         
-        # Mapping Region (Pulau)
         region_map = {}
         sumatera = ["ACEH", "SUMATERA UTARA", "SUMATERA BARAT", "RIAU", "JAMBI", "SUMATERA SELATAN", "BENGKULU", "LAMPUNG", "KEP. BANGKA BELITUNG", "KEP. RIAU"]
         jawa = ["DKI JAKARTA", "JAWA BARAT", "JAWA TENGAH", "DI YOGYAKARTA", "JAWA TIMUR", "BANTEN"]
@@ -271,7 +276,6 @@ class AgriDataProcessor:
         for p in maluku_papua: region_map[p] = "Maluku & Papua"
             
         df['Pulau'] = df.index.map(region_map)
-        self.df_region = df
         return df
 
 processor = AgriDataProcessor(RAW_CSV_DATA)
@@ -284,7 +288,6 @@ komoditas = processor.commodities
 st.sidebar.title("🌿 Agri-Analytics Enterprise")
 st.sidebar.markdown("Sistem Analitik Data Perkebunan")
 
-# Theme Toggle
 theme_col1, theme_col2 = st.sidebar.columns([1, 2])
 if theme_col1.button("🌙" if st.session_state.theme == "light" else "☀️"):
     st.session_state.theme = "light" if st.session_state.theme == "dark" else "dark"
@@ -298,6 +301,7 @@ menu = st.sidebar.selectbox("Navigasi Modul:", [
     "🧹 Data Cleaning & Export Engine",
     "📊 Eksplorasi Data (EDA 2D)",
     "🧊 Visualisasi 3D Interaktif",
+    "🌋 Peta 3D Indonesia (Geospatial)",
     "🗺️ Regional Geospatial (Sunburst)",
     "📉 Dimensionality Reduction (PCA)",
     "🔗 Analisis Hubungan Variabel",
@@ -312,7 +316,6 @@ st.sidebar.write(f"📊 **Observasi:** {df.shape[0]} Provinsi")
 st.sidebar.write(f"📈 **Variabel:** {df.shape[1]-1} Komoditas")
 st.sidebar.write("✅ **Data Quality:** Excellent")
 
-# Download Data di Sidebar
 st.sidebar.divider()
 st.sidebar.markdown("#### Download Data")
 def get_table_download_link(df_to_download: pd.DataFrame, filename: str, text: str):
@@ -468,7 +471,84 @@ elif menu == "🧊 Visualisasi 3D Interaktif":
         st.plotly_chart(fig, use_container_width=True)
 
 # ==============================================================================
-# HALAMAN 5: REGIONAL SUNBURST
+# HALAMAN 5: PETA 3D INDONESIA (NEW)
+# ==============================================================================
+elif menu == "🌋 Peta 3D Indonesia (Geospatial)":
+    st.markdown("# 🌋 Peta 3D Indonesia (Geospatial)")
+    st.markdown("Visualisasi produksi komoditas dalam bentuk batang 3D berdasarkan koordinat geografis provinsi dari Sabang hingga Merauke.")
+    
+    selected_kom_map = st.selectbox("Pilih Komoditas untuk dipetakan:", komoditas)
+    
+    lats, lons, prods, provs = [], [], [], []
+    
+    # Ekstrak koordinat dan nilai produksi
+    for prov in df.index:
+        if prov in PROV_COORDS:
+            lat, lon = PROV_COORDS[prov]
+            lats.append(lat)
+            lons.append(lon)
+            prods.append(df.loc[prov, selected_kom_map])
+            provs.append(prov)
+            
+    # Membuat garis vertikal (3D bars) dengan trik list extend None
+    x_lines, y_lines, z_lines = [], [], []
+    for i in range(len(provs)):
+        x_lines.extend([lons[i], lons[i], None])
+        y_lines.extend([lats[i], lats[i], None])
+        z_lines.extend([0, prods[i], None])
+        
+    fig = go.Figure()
+    
+    # Tambahkan batang 3D
+    fig.add_trace(go.Scatter3d(
+        x=x_lines,
+        y=y_lines,
+        z=z_lines,
+        mode='lines',
+        line=dict(color='rgba(59, 130, 246, 0.7)', width=8),
+        hoverinfo='none',
+        name='Magnitude Produksi'
+    ))
+    
+    # Tambahkan titik atas batang (Marker)
+    fig.add_trace(go.Scatter3d(
+        x=lons,
+        y=lats,
+        z=prods,
+        mode='markers',
+        marker=dict(
+            size=6,
+            color=prods,
+            colorscale='Plasma',
+            line=dict(width=1, color='white'),
+            showscale=True,
+            colorbar=dict(title="Produksi")
+        ),
+        text=provs,
+        hovertemplate='<b>%{text}</b><br>Produksi: %{z:.2f} Ton<extra></extra>',
+        name='Provinsi'
+    ))
+    
+    # Setting layout agar rasio geografis tetap dipertahankan (tidak terlihat gepeng)
+    fig.update_layout(
+        scene=dict(
+            xaxis_title='Longitude',
+            yaxis_title='Latitude',
+            zaxis_title='Produksi (Ton)',
+            aspectmode='manual',
+            aspectratio=dict(x=2, y=2, z=1) # Sesuaikan rasio agar membentuk kepulauan
+        ),
+        margin=dict(l=0, r=0, b=0, t=30),
+        template='plotly_dark',
+        showlegend=False,
+        height=700
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+    st.info("📊 **Interpretasi:** Putar grafik 3D di atas menggunakan mouse Anda. Anda akan melihat titik-titik yang membentuk kepulauan Indonesia. Tinggi batang menunjukkan jumlah produksi komoditas terpilih di provinsi tersebut.")
+
+# ==============================================================================
+# HALAMAN 6: REGIONAL SUNBURST
 # ==============================================================================
 elif menu == "🗺️ Regional Geospatial (Sunburst)":
     st.markdown("# 🗺️ Regional Geospatial Analysis")
@@ -487,7 +567,7 @@ elif menu == "🗺️ Regional Geospatial (Sunburst)":
     st.info("📊 **Interpretasi:** Klik pada bagian pulau untuk melakukan zoom-in ke provinsi dan komoditas di dalamnya.")
 
 # ==============================================================================
-# HALAMAN 6: PCA
+# HALAMAN 7: PCA
 # ==============================================================================
 elif menu == "📉 Dimensionality Reduction (PCA)":
     st.markdown("# 📉 Principal Component Analysis (PCA)")
@@ -526,7 +606,7 @@ elif menu == "📉 Dimensionality Reduction (PCA)":
     st.plotly_chart(fig, use_container_width=True)
 
 # ==============================================================================
-# HALAMAN 7: HUBUNGAN VARIABEL
+# HALAMAN 8: HUBUNGAN VARIABEL
 # ==============================================================================
 elif menu == "🔗 Analisis Hubungan Variabel":
     st.markdown("# 🔗 Analisis Hubungan Variabel (Bagian D)")
@@ -546,7 +626,7 @@ elif menu == "🔗 Analisis Hubungan Variabel":
     c3.metric("P-Value", f"{p_val:.4f}")
 
 # ==============================================================================
-# HALAMAN 8: REGRESI
+# HALAMAN 9: REGRESI
 # ==============================================================================
 elif menu == "🧮 Pemodelan Regresi & Uji Asumsi":
     st.markdown("# 🧮 Pemodelan Regresi Linear (Bagian E)")
@@ -572,7 +652,7 @@ elif menu == "🧮 Pemodelan Regresi & Uji Asumsi":
         c3.metric("R-Squared", f"{r2:.4f}")
 
 # ==============================================================================
-# HALAMAN 9: WHAT-IF SIMULATOR
+# HALAMAN 10: WHAT-IF SIMULATOR
 # ==============================================================================
 elif menu == "🎮 What-If Analysis Simulator":
     st.markdown("# 🎮 What-If Analysis Simulator")
@@ -618,7 +698,7 @@ elif menu == "🎮 What-If Analysis Simulator":
     st.success(f"Jika produksi **{x_sim}** diatur sebesar **{input_val:.2f} Ton**, maka model memprediksi produksi **{y_sim}** akan menjadi **{prediction:.2f} Ton**.")
 
 # ==============================================================================
-# HALAMAN 10: INSIGHT
+# HALAMAN 11: INSIGHT
 # ==============================================================================
 elif menu == "💡 Insight & Rekomendasi":
     st.markdown("# 💡 Insight & Rekomendasi (Bagian F)")
