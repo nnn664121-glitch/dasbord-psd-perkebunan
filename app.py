@@ -1,8 +1,7 @@
 # ==============================================================================
-# UAS PENGENALAN SAINS DATA - ENTERPRISE DASHBOARD 3D
+# UAS PENGENALAN SAINS DATA - ENTERPRISE DASHBOARD 3D (STABLE VERSION)
 # ==============================================================================
 # Tools: Streamlit, Pandas, Numpy, Matplotlib, Seaborn, Plotly, Scipy, Statsmodels
-# Features: 3D Visualization, PCA, What-If Simulator, Sunburst, Theme Toggle
 # ==============================================================================
 
 import streamlit as st
@@ -12,10 +11,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.express as px
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 from scipy import stats
 from scipy.cluster import hierarchy
-from scipy.spatial.distance import pdist
 import statsmodels.api as sm
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 import warnings
@@ -73,102 +70,135 @@ PAPUA PEGUNUNGAN;0.0;0.02;0.0;3.27;0.0;0.0;0.0
 """
 
 # ==============================================================================
-# CUSTOM CSS & THEME MANAGER
+# CUSTOM CSS & THEME MANAGER (FIXED: NO F-STRING INTERPOLATION)
 # ==============================================================================
 def load_css(theme: str = "dark") -> None:
-    """Memuat CSS berdasarkan tema yang dipilih."""
+    """Memuat CSS berdasarkan tema yang dipilih tanpa f-string untuk mencegah error."""
     
     if theme == "dark":
-        bg_color = "#0f172a"
-        card_bg = "rgba(30, 41, 59, 0.7)"
-        text_main = "#f8fafc"
-        text_muted = "#94a3b8"
-        primary = "#3b82f6"
-        secondary = "#8b5cf6"
-        bg_gradient = """
-            radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 40%),
-            radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 40%),
-            #0f172a;
+        css = """
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;600&display=swap');
+            :root {
+                --bg-color: #0f172a;
+                --card-bg: rgba(30, 41, 59, 0.7);
+                --text-main: #f8fafc;
+                --text-muted: #94a3b8;
+                --primary: #3b82f6;
+                --secondary: #8b5cf6;
+            }
+            .stApp {
+                background: radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 40%),
+                            radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 40%),
+                            #0f172a;
+                color: var(--text-main);
+                font-family: 'Outfit', sans-serif;
+                transition: background 0.5s ease;
+            }
+            h1, h2, h3, h4 {
+                font-family: 'Outfit', sans-serif !important;
+                font-weight: 800 !important;
+                background: linear-gradient(90deg, var(--primary), var(--secondary));
+                -webkit-background-clip: text !important;
+                -webkit-text-fill-color: transparent !important;
+            }
+            section[data-testid="stSidebar"] {
+                background: rgba(15, 23, 42, 0.9) !important;
+                border-right: 1px solid rgba(148, 163, 184, 0.2) !important;
+                backdrop-filter: blur(10px);
+            }
+            div[data-testid="stMetric"] {
+                background: var(--card-bg) !important;
+                border: 1px solid rgba(148, 163, 184, 0.2) !important;
+                padding: 20px !important;
+                border-radius: 15px !important;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+                transition: transform 0.3s ease !important;
+            }
+            div[data-testid="stMetric"]:hover {
+                transform: translateY(-5px) !important;
+                border-color: var(--primary) !important;
+            }
+            .stDataFrame, .stTable {
+                background: var(--card-bg) !important;
+                border-radius: 12px !important;
+                border: 1px solid rgba(148, 163, 184, 0.2) !important;
+            }
+            .stButton>button, .stDownloadButton>button {
+                background: linear-gradient(90deg, var(--primary), var(--secondary)) !important;
+                color: white !important;
+                border: none !important;
+                font-weight: 600 !important;
+                transition: all 0.3s ease !important;
+            }
+            .stSelectbox>div>div, .stMultiselect>div>div, .stSlider>div>div {
+                background: var(--card-bg) !important;
+                border-color: rgba(148, 163, 184, 0.3) !important;
+                color: var(--text-main) !important;
+            }
+        </style>
         """
     else:
-        bg_color = "#f8fafc"
-        card_bg = "#ffffff"
-        text_main = "#0f172a"
-        text_muted = "#64748b"
-        primary = "#2563eb"
-        secondary = "#7c3aed"
-        bg_gradient = "#f8fafc;"
-
-    st.markdown(f"""
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;600&display=swap');
-        
-        :root {
-            --bg-color: {bg_color};
-            --card-bg: {card_bg};
-            --text-main: {text_main};
-            --text-muted: {text_muted};
-            --primary: {primary};
-            --secondary: {secondary};
-        }
-        
-        .stApp {{
-            background: {bg_gradient}
-            color: var(--text-main);
-            font-family: 'Outfit', sans-serif;
-            transition: background 0.5s ease;
-        }}
-        
-        h1, h2, h3, h4 {{
-            font-family: 'Outfit', sans-serif !important;
-            font-weight: 800 !important;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text !important;
-            -webkit-text-fill-color: transparent !important;
-        }}
-        
-        section[data-testid="stSidebar"] {{
-            background: {card_bg} !important;
-            border-right: 1px solid rgba(148, 163, 184, 0.2) !important;
-            backdrop-filter: blur(10px);
-        }}
-        
-        div[data-testid="stMetric"] {{
-            background: var(--card-bg) !important;
-            border: 1px solid rgba(148, 163, 184, 0.2) !important;
-            padding: 20px !important;
-            border-radius: 15px !important;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
-            transition: transform 0.3s ease !important;
-        }}
-        
-        div[data-testid="stMetric"]:hover {{
-            transform: translateY(-5px) !important;
-            border-color: var(--primary) !important;
-        }}
-        
-        .stDataFrame, .stTable {{
-            background: var(--card-bg) !important;
-            border-radius: 12px !important;
-            border: 1px solid rgba(148, 163, 184, 0.2) !important;
-        }}
-        
-        .stButton>button, .stDownloadButton>button {{
-            background: linear-gradient(90deg, var(--primary), var(--secondary)) !important;
-            color: white !important;
-            border: none !important;
-            font-weight: 600 !important;
-            transition: all 0.3s ease !important;
-        }}
-        
-        .stSelectbox>div>div, .stMultiselect>div>div, .stSlider>div>div {{
-            background: var(--card-bg) !important;
-            border-color: rgba(148, 163, 184, 0.3) !important;
-            color: var(--text-main) !important;
-        }}
-        
-    </style>
-    """, unsafe_allow_html=True)
+        css = """
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;600&display=swap');
+            :root {
+                --bg-color: #f8fafc;
+                --card-bg: #ffffff;
+                --text-main: #0f172a;
+                --text-muted: #64748b;
+                --primary: #2563eb;
+                --secondary: #7c3aed;
+            }
+            .stApp {
+                background: #f8fafc;
+                color: var(--text-main);
+                font-family: 'Outfit', sans-serif;
+                transition: background 0.5s ease;
+            }
+            h1, h2, h3, h4 {
+                font-family: 'Outfit', sans-serif !important;
+                font-weight: 800 !important;
+                background: linear-gradient(90deg, var(--primary), var(--secondary));
+                -webkit-background-clip: text !important;
+                -webkit-text-fill-color: transparent !important;
+            }
+            section[data-testid="stSidebar"] {
+                background: #ffffff !important;
+                border-right: 1px solid rgba(148, 163, 184, 0.2) !important;
+            }
+            div[data-testid="stMetric"] {
+                background: #ffffff !important;
+                border: 1px solid rgba(148, 163, 184, 0.2) !important;
+                padding: 20px !important;
+                border-radius: 15px !important;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+                transition: transform 0.3s ease !important;
+            }
+            div[data-testid="stMetric"]:hover {
+                transform: translateY(-5px) !important;
+                border-color: var(--primary) !important;
+            }
+            .stDataFrame, .stTable {
+                background: #ffffff !important;
+                border-radius: 12px !important;
+                border: 1px solid rgba(148, 163, 184, 0.2) !important;
+            }
+            .stButton>button, .stDownloadButton>button {
+                background: linear-gradient(90deg, var(--primary), var(--secondary)) !important;
+                color: white !important;
+                border: none !important;
+                font-weight: 600 !important;
+                transition: all 0.3s ease !important;
+            }
+            .stSelectbox>div>div, .stMultiselect>div>div, .stSlider>div>div {
+                background: #ffffff !important;
+                border-color: rgba(148, 163, 184, 0.3) !important;
+                color: var(--text-main) !important;
+            }
+        </style>
+        """
+    st.markdown(css, unsafe_allow_html=True)
 
 # Inisialisasi Theme State
 if 'theme' not in st.session_state:
@@ -410,14 +440,14 @@ elif menu == "🧊 Visualisasi 3D Interaktif":
         st.plotly_chart(fig, use_container_width=True)
 
 # ==============================================================================
-# HALAMAN 5: REGIONAL SUNBURST (NEW)
+# HALAMAN 5: REGIONAL SUNBURST
 # ==============================================================================
 elif menu == "🗺️ Regional Geospatial (Sunburst)":
     st.markdown("# 🗺️ Regional Geospatial Analysis")
     st.markdown("Visualisasi hierarki produksi dari tingkat Pulau -> Provinsi -> Komoditas menggunakan Sunburst Chart.")
     
     df_sun = df.reset_index().melt(id_vars=['Provinsi', 'Pulau'], value_vars=komoditas, var_name='Komoditas', value_name='Produksi')
-    df_sun = df_sun[df_sun['Produksi'] > 0] # Hanya yang ada produksinya
+    df_sun = df_sun[df_sun['Produksi'] > 0]
     
     fig = px.sunburst(df_sun, path=['Pulau', 'Provinsi', 'Komoditas'], values='Produksi',
                       color='Produksi', color_continuous_scale='RdYlGn',
@@ -426,32 +456,31 @@ elif menu == "🗺️ Regional Geospatial (Sunburst)":
     fig.update_layout(margin=dict(t=40, b=0, l=0, r=0))
     st.plotly_chart(fig, use_container_width=True)
     
-    st.info("📊 **Interpretasi:** Klik pada bagian pulau untuk melakukan zoom-in ke provinsi dan komoditas di dalamnya. Warna hijau menunjukkan kontribusi produksi tertinggi.")
+    st.info("📊 **Interpretasi:** Klik pada bagian pulau untuk melakukan zoom-in ke provinsi dan komoditas di dalamnya.")
 
 # ==============================================================================
-# HALAMAN 6: PCA (NEW)
+# HALAMAN 6: PCA
 # ==============================================================================
 elif menu == "📉 Dimensionality Reduction (PCA)":
     st.markdown("# 📉 Principal Component Analysis (PCA)")
     st.markdown("Reduksi 7 dimensi komoditas menjadi 3 dimensi utama (PC1, PC2, PC3) untuk melihat pengelompokan provinsi secara alami.")
     
-    # Standardisasi Data
     X = df[komoditas].values
     X_std = (X - X.mean(axis=0)) / X.std(axis=0)
     
-    # Hitung Covariance & Eigen
     cov_matrix = np.cov(X_std.T)
     eigenvalues, eigenvectors = np.linalg.eig(cov_matrix)
     
-    # Sort eigenvalues
+    # FIX: Cast to real to avoid complex numbers due to float precision
+    eigenvalues = np.real(eigenvalues)
+    eigenvectors = np.real(eigenvectors)
+    
     idx = eigenvalues.argsort()[::-1]
     eigenvalues = eigenvalues[idx]
     eigenvectors = eigenvectors[:, idx]
     
-    # Project Data
     pc_scores = np.dot(X_std, eigenvectors)
     
-    # Explained Variance
     total_var = eigenvalues.sum()
     expl_var = (eigenvalues / total_var) * 100
     
@@ -468,8 +497,6 @@ elif menu == "📉 Dimensionality Reduction (PCA)":
                         title="Clustering Provinsi Berdasarkan PCA (3D)", template='plotly_dark')
     fig.update_traces(marker=dict(size=6, line=dict(width=1, color='white')))
     st.plotly_chart(fig, use_container_width=True)
-    
-    st.info("📊 **Interpretasi:** Provinsi yang berdekatan di grafik 3D ini memiliki profil produksi komoditas yang mirip. Warna menunjukkan pulau asalnya.")
 
 # ==============================================================================
 # HALAMAN 7: HUBUNGAN VARIABEL
@@ -518,7 +545,7 @@ elif menu == "🧮 Pemodelan Regresi & Uji Asumsi":
         c3.metric("R-Squared", f"{r2:.4f}")
 
 # ==============================================================================
-# HALAMAN 9: WHAT-IF SIMULATOR (NEW)
+# HALAMAN 9: WHAT-IF SIMULATOR
 # ==============================================================================
 elif menu == "🎮 What-If Analysis Simulator":
     st.markdown("# 🎮 What-If Analysis Simulator")
@@ -528,7 +555,6 @@ elif menu == "🎮 What-If Analysis Simulator":
     with c1: y_sim = st.selectbox("Target Prediksi (Y):", komoditas, index=3)
     with c2: x_sim = st.selectbox("Variabel Input (X):", [k for k in komoditas if k != y_sim], index=0)
     
-    # Buat model sederhana y = mx + c
     X_sim = df[x_sim].values
     Y_sim = df[y_sim].values
     slope, intercept, r_value, p_value, std_err = stats.linregress(X_sim, Y_sim)
@@ -541,11 +567,9 @@ elif menu == "🎮 What-If Analysis Simulator":
     max_val = float(df[x_sim].max())
     input_val = st.slider(f"Geser untuk mensimulasikan produksi {x_sim} (Ribuan Ton):", 0.0, max_val, float(df[x_sim].mean()), step=0.1)
     
-    # Prediksi
     prediction = slope * input_val + intercept
-    prediction = max(0, prediction) # Tidak boleh negatif
+    prediction = max(0, prediction)
     
-    # Gauge Chart Plotly
     fig = go.Figure(go.Indicator(
         mode = "gauge+number",
         value = prediction,
